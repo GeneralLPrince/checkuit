@@ -1,6 +1,7 @@
 import subprocess
 import math
 import sys
+import textwrap
 
 input_data = ["3", "Ali", "20", "Rayan", "16", "Saad", "0"]
 input_str = "\n".join(input_data)
@@ -39,11 +40,18 @@ if errors:
     print(errors)
     sys.exit(1)
 
-answer = output.split("------------")[1].strip()
-
-if answer == "Nom: Ali\nNote: 20\n\nNom: Rayan\nNote: 16\n\nNom: Saad\nNote: 0":
-    print("\033[32m:) student_program.c renvoie correctement la note d'Ali, Rayan et Saad selon l'ordre d'insertion !\033[0m")
-else:
+if len(output.split("------------")) < 2:
+    padded_lines = "\n".join(line.rjust(10) for line in output.splitlines())
     print("\033[31m:( student_program.c renvoie correctement la note d'Ali, Rayan et Saad selon l'ordre d'insertion !\033[0m")
-    print(f"\033[33mRetour: \n{answer}\033[0m")
+    print(f"\033[33mRetour: \n{padded_lines}\033[0m")
+    sys.exit(1)
+else:
+    answer = output.split("------------")[1].strip()
+    padded_lines = textwrap.indent(answer, '   ')
+
+    if answer == "Nom: Ali\nNote: 20\n\nNom: Rayan\nNote: 16\n\nNom: Saad\nNote: 0":
+        print("\033[32m:) student_program.c renvoie correctement la note d'Ali, Rayan et Saad selon l'ordre d'insertion !\033[0m")
+    else:
+        print("\033[31m:( student_program.c renvoie correctement la note d'Ali, Rayan et Saad selon l'ordre d'insertion !\033[0m")
+        print(f"\033[33mRetour: \n{padded_lines}\033[0m")
 
