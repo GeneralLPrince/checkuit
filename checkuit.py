@@ -101,22 +101,18 @@ def download_C_folder(owner, repo, branch='main', token=None, base_path='.'):
 def main():
     owner = 'GeneralLPrince'
     repo = 'checkuit'
-    branch = 'main'  # Modifiez ceci si votre branche par défaut est différente
-    token = None  # Remplacez par votre jeton GitHub si vous en avez un pour éviter les limites de taux
-    base_path = '/workspaces/checkuit'  # Chemin absolu vers le répertoire où se trouvent le script et le dossier C
+    branch = 'main' 
+    token = None 
+    base_path = '/workspaces/checkuit' 
 
     try:
         if not is_C_folder_up_to_date(owner, repo, branch, token, base_path):
-            print("Le dossier C n'est pas à jour. Téléchargement de la dernière version...")
+            print("checkuit n'est pas à jour. Téléchargement de la dernière version...")
             download_C_folder(owner, repo, branch, token, base_path)
-            print("Dossier C mis à jour.")
-        else:
-            print("Le dossier C est à jour.")
+            print("checkuit est à jour.")
     except Exception as e:
         print(f"Une erreur s'est produite lors de la vérification des mises à jour : {e}")
-        # Vous pouvez choisir de gérer l'erreur différemment, par exemple en arrêtant le programme ou en continuant
 
-    # Procédez à l'exécution du reste de votre code
     current_path = os.path.dirname(os.path.abspath(__file__))
 
     def run_python_file(file_path):
@@ -131,7 +127,7 @@ def main():
         script_to_run = os.path.join(current_path, sys.argv[1])
         run_python_file(script_to_run)
     else:
-        print("Veuillez fournir le chemin du fichier Python à exécuter en argument.")
+        print("Veuillez fournir le chemin du fichier test.")
 
 if __name__ == '__main__':
     main()
