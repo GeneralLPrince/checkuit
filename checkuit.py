@@ -55,23 +55,24 @@ def get_remote_C_files(owner, repo, branch='main', token=None):
             remote_files[item['path']] = item['sha']
     return remote_files
 
-def get_local_C_files_hashes():
+def get_local_C_files_hashes(base_path):
     local_files = {}
-    if not os.path.exists('C'):
+    C_path = os.path.join(base_path, 'C')
+    if not os.path.exists(C_path):
         return local_files
-    for root, dirs, files in os.walk('C'):
+    for root, dirs, files in os.walk(C_path):
         for name in files:
             filepath = os.path.join(root, name)
-            relative_path = os.path.relpath(filepath, '.').replace('\\', '/')
+            relative_path = os.path.relpath(filepath, base_path).replace('\\', '/')
             with open(filepath, 'rb') as f:
                 content = f.read()
             sha1 = hashlib.sha1(content).hexdigest()
             local_files[relative_path] = sha1
     return local_files
 
-def is_C_folder_up_to_date(owner, repo, branch='main', token=None):
+def is_C_folder_up_to_date(owner, repo, branch='main', token=None, base_path='.'):
     remote_files = get_remote_C_files(owner, repo, branch, token)
-    local_files = get_local_C_files_hashes()
+    local_files = get_local_C_files_hashes(base_path)
     if set(remote_files.keys()) != set(local_files.keys()):
         return False
     for path in remote_files:
@@ -85,13 +86,14 @@ def is_C_folder_up_to_date(owner, repo, branch='main', token=None):
             return False
     return True
 
-def download_C_folder(owner, repo, branch='main', token=None):
+def download_C_folder(owner, repo, branch='main', token=None, base_path='.'):
     remote_files = get_remote_C_files(owner, repo, branch, token)
-    if os.path.exists('C'):
-        shutil.rmtree('C')
+    C_path = os.path.join(base_path, 'C')
+    if os.path.exists(C_path):
+        shutil.rmtree(C_path)
     for path, sha in remote_files.items():
         content = get_blob_content(owner, repo, sha, token)
-        local_path = path  
+        local_path = os.path.join(base_path, path.replace('/', os.sep))  # Convertir en chemin spécifique à l'OS
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
         with open(local_path, 'wb') as f:
             f.write(content)
@@ -99,16 +101,22 @@ def download_C_folder(owner, repo, branch='main', token=None):
 def main():
     owner = 'GeneralLPrince'
     repo = 'checkuit'
-    branch = 'main'  
-    token = None  
+    branch = 'main'  # Modifiez ceci si votre branche par défaut est différente
+    token = None  # Remplacez par votre jeton GitHub si vous en avez un pour éviter les limites de taux
+    base_path = '/workspaces/checkuit'  # Chemin absolu vers le répertoire où se trouvent le script et le dossier C
+
     try:
-        if not is_C_folder_up_to_date(owner, repo, branch, token):
-            print("Le dossier checkuit n'est pas à jour. Téléchargement de la dernière version...")
-            download_C_folder(owner, repo, branch, token)
-            print("Dossier checkuit mis à jour.")
+        if not is_C_folder_up_to_date(owner, repo, branch, token, base_path):
+            print("Le dossier C n'est pas à jour. Téléchargement de la dernière version...")
+            download_C_folder(owner, repo, branch, token, base_path)
+            print("Dossier C mis à jour.")
+        else:
+            print("Le dossier C est à jour.")
     except Exception as e:
         print(f"Une erreur s'est produite lors de la vérification des mises à jour : {e}")
+        # Vous pouvez choisir de gérer l'erreur différemment, par exemple en arrêtant le programme ou en continuant
 
+    # Procédez à l'exécution du reste de votre code
     current_path = os.path.dirname(os.path.abspath(__file__))
 
     def run_python_file(file_path):
@@ -120,11 +128,13 @@ def main():
             exec(code, {}, context)
 
     if len(sys.argv) > 1:
-        run_python_file(os.path.join(current_path, sys.argv[1]))
+        script_to_run = os.path.join(current_path, sys.argv[1])
+        run_python_file(script_to_run)
     else:
-        print("Veuillez entrer le chemin du l'exercice.")
+        print("Veuillez fournir le chemin du fichier Python à exécuter en argument.")
 
 if __name__ == '__main__':
     main()
+
 
 #checkuit/C/IA/2024/Structures/Exercice1/test_python.py
