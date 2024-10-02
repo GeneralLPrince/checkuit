@@ -127,7 +127,7 @@ def main():
         else:
             print("checkuit est déjà à jour.")
     except Exception as e:
-        print(f"Une erreur s'est produite lors de la vérification des mises à jour : {e}")
+        pass
 
     current_path = os.path.dirname(os.path.abspath(__file__))
 
