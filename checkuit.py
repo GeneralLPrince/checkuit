@@ -135,9 +135,12 @@ def main():
         context = {
             'codePath': [file_path, os.getcwd()],
         }
-        with open(file_path, 'r') as file:
-            code = file.read()
-            exec(code, {}, context)
+        try:
+            with open(file_path+".py", 'r') as file:
+                code = file.read()
+                exec(code, {}, context)
+        except FileNotFoundError:
+            print("Ce test n'existe pas.")
 
     if len(sys.argv) > 1:
         script_to_run = os.path.join(current_path, sys.argv[1])
@@ -147,5 +150,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-
+    
 #checkuit/C/IA/2024/Structures/Exercice1/test_python.py
