@@ -4,6 +4,7 @@ import requests
 import hashlib
 import shutil
 import base64
+import time
 
 def get_headers(token=None):
     headers = {}
@@ -43,7 +44,7 @@ def get_blob_content(owner, repo, sha, token=None):
         content_bytes = base64.b64decode(content)
         return content_bytes
     else:
-        raise ValueError(f"Encodage inconnu : {encoding}")
+        raise ValueError(f"Unknown encoding: {encoding}")
 
 def get_remote_C_files(owner, repo, branch='main', token=None):
     latest_commit_sha = get_latest_commit_sha(owner, repo, branch, token)
@@ -71,6 +72,16 @@ def get_local_C_files_hashes(base_path):
     return local_files
 
 def is_C_folder_up_to_date(owner, repo, branch='main', token=None, base_path='.'):
+    # Check if it's been less than an hour since the last check
+    cache_file = os.path.join(base_path, '.last_check_time')
+    current_time = time.time()
+    if os.path.exists(cache_file):
+        with open(cache_file, 'r') as f:
+            last_check_time = float(f.read())
+        if current_time - last_check_time < 3600:  # 3600 seconds = 1 hour
+            print("Last check was less than an hour ago. Skipping update check.")
+            return True  # Assume up-to-date to skip API calls
+    # Proceed with the update check
     remote_files = get_remote_C_files(owner, repo, branch, token)
     local_files = get_local_C_files_hashes(base_path)
     if set(remote_files.keys()) != set(local_files.keys()):
@@ -84,6 +95,9 @@ def is_C_folder_up_to_date(owner, repo, branch='main', token=None, base_path='.'
         remote_content_sha1 = hashlib.sha1(remote_content).hexdigest()
         if remote_content_sha1 != local_sha:
             return False
+    # Update the last check time
+    with open(cache_file, 'w') as f:
+        f.write(str(current_time))
     return True
 
 def download_C_folder(owner, repo, branch='main', token=None, base_path='.'):
@@ -93,7 +107,7 @@ def download_C_folder(owner, repo, branch='main', token=None, base_path='.'):
         shutil.rmtree(C_path)
     for path, sha in remote_files.items():
         content = get_blob_content(owner, repo, sha, token)
-        local_path = os.path.join(base_path, path.replace('/', os.sep))  # Convertir en chemin spécifique à l'OS
+        local_path = os.path.join(base_path, path.replace('/', os.sep))  # Convert to OS-specific path
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
         with open(local_path, 'wb') as f:
             f.write(content)
@@ -101,15 +115,17 @@ def download_C_folder(owner, repo, branch='main', token=None, base_path='.'):
 def main():
     owner = 'GeneralLPrince'
     repo = 'checkuit'
-    branch = 'main' 
-    token = None 
-    base_path = '/workspaces/checkuit' 
+    branch = 'main'
+    token = None  # Or use os.getenv('GITHUB_TOKEN') if you have a token
+    base_path = '/workspaces/checkuit'
 
     try:
         if not is_C_folder_up_to_date(owner, repo, branch, token, base_path):
             print("checkuit n'est pas à jour. Téléchargement de la dernière version...")
             download_C_folder(owner, repo, branch, token, base_path)
             print("checkuit est à jour.")
+        else:
+            print("checkuit est déjà à jour.")
     except Exception as e:
         print(f"Une erreur s'est produite lors de la vérification des mises à jour : {e}")
 
@@ -131,6 +147,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-
 
 #checkuit/C/IA/2024/Structures/Exercice1/test_python.py
