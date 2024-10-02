@@ -79,7 +79,6 @@ def is_C_folder_up_to_date(owner, repo, branch='main', token=None, base_path='.'
         with open(cache_file, 'r') as f:
             last_check_time = float(f.read())
         if current_time - last_check_time < 3600:  # 3600 seconds = 1 hour
-            print("Last check was less than an hour ago. Skipping update check.")
             return True  # Assume up-to-date to skip API calls
     # Proceed with the update check
     remote_files = get_remote_C_files(owner, repo, branch, token)
@@ -123,9 +122,6 @@ def main():
         if not is_C_folder_up_to_date(owner, repo, branch, token, base_path):
             print("checkuit n'est pas à jour. Téléchargement de la dernière version...")
             download_C_folder(owner, repo, branch, token, base_path)
-            print("checkuit est à jour.")
-        else:
-            print("checkuit est déjà à jour.")
     except Exception as e:
         pass
 
